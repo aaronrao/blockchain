@@ -14,34 +14,32 @@ java -jar blockchain.jar 8082 7002 ws://localhost:7001
 
 ### HTTP API
 
-- 查询区块链
+- 查询区块链(GET)
 
   ```
   curl http://localhost:8081/chain
-
   ```
-- 创建钱包
+  
+- 创建钱包(POST)
 
   ```
   curl http://localhost:8081/wallet/create
+  ```
+  
+- 挖矿(POST)
 
   ```
-- 挖矿
-
-  ```
-  curl http://localhost:8081/mine
-
+  curl http://localhost:8081/mine?address=518522f475ab591cf55d5f79bef629a0
   ```
 
-- 转账交易
+- 转账交易(POST)
 
   ```
-  curl http://localhost:8081/transactions/new
-
+  curl -H "Content-type:application/json" --data '{"sender": "d4e44223434sdfdgerewfd3fefe9dfe","recipient": "45adiy5grt4544sdfdg454efe54dssq5","amount": 10}' http://localhost:8081/transactions/new
   ```
-- 查询钱包余额
+  
+- 查询钱包余额(GET)
 
   ```
   curl http://localhost:8081/wallet/balance/get?address=518522f475ab591cf55d5f79bef629a0
-
   ```
