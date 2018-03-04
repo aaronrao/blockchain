@@ -1,4 +1,4 @@
-package com.blockchain.model;
+package com.blockchain.p2p;
 
 import java.io.Serializable;
 

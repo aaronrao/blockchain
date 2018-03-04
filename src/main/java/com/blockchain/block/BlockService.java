@@ -46,16 +46,64 @@ public class BlockService {
 		this.walletMap = walletMap;
 	}
 
-	public Block getLastBlock() {
-		return blockchain.size() > 0 ? blockchain.get(blockchain.size() - 1) : null;
+	public List<Block> getBlockchain() {
+		return blockchain;
 	}
 
+	public void setBlockchain(List<Block> blockchain) {
+		this.blockchain = blockchain;
+	}
+	
 	public BlockService() {
         //新建创始区块
         Block genesisBlock = createNewBlock(100, "1", "1"); 
         System.out.println("生成创始区块：" + JSON.toJSONString(genesisBlock));
     }
 
+	/**
+	 * 获取最新的区块，即当前链上最后一个区块
+	 * @return
+	 */
+	public Block getLatestBlock() {
+		return blockchain.size() > 0 ? blockchain.get(blockchain.size() - 1) : null;
+	}
+
+	public void addBlock(Block newBlock) {
+        if (isValidNewBlock(newBlock, getLatestBlock())) {
+        	blockchain.add(newBlock);
+        }
+    }
+	
+	public boolean isValidNewBlock(Block newBlock, Block previousBlock) {
+        if (previousBlock.getIndex() + 1 != newBlock.getIndex()) {
+            System.out.println("invalid index");
+            return false;
+        } else if (!previousBlock.getHash().equals(newBlock.getPreviousHash())) {
+            System.out.println("invalid previoushash");
+            return false;
+        } else {
+        	//验证新区块hash值的正确性
+            String hash = calculateHash(newBlock.getPreviousHash(), newBlock.getTransactions(), newBlock.getNonce());
+            if (!hash.equals(newBlock.getHash())) {
+                System.out.println("invalid hash: " + hash + " " + newBlock.getHash());
+                return false;
+            }
+            if (!isValidHash(newBlock.getHash())){
+            	return false;
+            }
+        }
+        
+        return true;
+    }
+	
+	public void replaceChain(List<Block> newBlocks) {
+        if (isValidChain(newBlocks) && newBlocks.size() > blockchain.size()) {
+            blockchain = newBlocks;
+        } else {
+            System.out.println("Received blockchain invalid");
+        }
+    }
+	
     private boolean isValidChain(List<Block> chain)
     {
         Block block = null;
@@ -68,14 +116,10 @@ public class BlockService {
             System.out.println("block:" + block);
             System.out.println("----------------------------");
 
-            //Check that the hash of the block is correct
-            if (!block.getPreviousHash().equals(lastBlock.getHash()))
-                return false;
-
-            //Check that the Proof of Work is correct
-            if (!isValidHash(block.getHash()))
-                return false;
-
+            if (!isValidNewBlock(block, lastBlock)) {
+            	return false;
+			}
+            
             lastBlock = block;
             currentIndex++;
         }
@@ -84,8 +128,9 @@ public class BlockService {
 
     private Block createNewBlock(int nonce, String previousHash, String hash)
     {
+    	//TODO 已花费交易要去除
     	Block block = new Block(blockchain.size() + 1, System.currentTimeMillis(), new ArrayList(currentTransactions), nonce, previousHash, hash);
-    	currentTransactions.clear();
+    	//currentTransactions.clear();
         blockchain.add(block);
         return block;
     }
@@ -94,7 +139,7 @@ public class BlockService {
     	return hash.startsWith("0000");
     }
 
-    private String getHash(String previousHash, List<Transaction> currentTransactions, int nonce) {
+    private String calculateHash(String previousHash, List<Transaction> currentTransactions, int nonce) {
         return CryptoUtil.SHA256(previousHash + JSON.toJSONString(currentTransactions) + nonce);
     }
     
@@ -103,6 +148,9 @@ public class BlockService {
      * @return
      */
     public String mine(String toAddress) {
+    	//创建系统奖励的交易
+        currentTransactions.add(newCoinbaseTx(toAddress, ""));
+    	
     	//验证所有交易是否有效，非常重要的一步，可以防止双花
     	List<Transaction> invalidTxs = new ArrayList<>();
     	for (Transaction tx : currentTransactions) {
@@ -113,7 +161,7 @@ public class BlockService {
     	
     	currentTransactions.removeAll(invalidTxs);
     	//获取当前区块链里最后一个区块
-    	Block lastBlock = getLastBlock();
+    	Block lastBlock = getLatestBlock();
     	
         String hash = "";
         boolean isValidNonce = false;
@@ -122,7 +170,7 @@ public class BlockService {
         System.out.println("开始挖矿");
         while (!isValidNonce){
         	//计算新区块hash值
-        	hash = getHash(lastBlock.getHash(), currentTransactions, nonce);
+        	hash = calculateHash(lastBlock.getHash(), currentTransactions, nonce);
         	//校验hash值
         	isValidNonce = isValidHash(hash);
         	if (isValidNonce) {
@@ -134,8 +182,6 @@ public class BlockService {
         	nonce++;
         }
     	
-        //创建系统奖励的交易
-        currentTransactions.add(newCoinbaseTx(toAddress, ""));
         //创建新的区块
         Block block = createNewBlock(nonce, lastBlock.getHash(), hash);
 
@@ -187,7 +233,7 @@ public class BlockService {
     	Transaction transaction = new Transaction(CryptoUtil.UUID(), txIn, txOut);
     	transaction.sign(senderWallet.getPrivateKey(), prevTx);
         currentTransactions.add(transaction);
-        Block lastBlock = getLastBlock();
+        Block lastBlock = getLatestBlock();
         return lastBlock != null ? lastBlock.getIndex() + 1 : 0;
     }
     
