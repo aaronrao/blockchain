@@ -12,7 +12,13 @@ import com.blockchain.security.RSACoder;
  */
 public class Wallet {
 	
+	/**
+	 * 公钥
+	 */
 	private String publicKey;  
+    /**
+     * 私钥
+     */
     private String privateKey; 
     
 	public String getPublicKey() {
@@ -34,6 +40,7 @@ public class Wallet {
 	public Wallet() {
 		Map<String, Object> initKey;
 		try {
+			//本地生成公私钥对
 			initKey = RSACoder.initKey();
 			this.publicKey = RSACoder.getPublicKey(initKey);
 			this.privateKey = RSACoder.getPrivateKey(initKey);
@@ -42,22 +49,38 @@ public class Wallet {
 		}
 	}
 	
+	/**
+	 * 获取钱包地址
+	 * @return
+	 */
 	public String getAddress() {
 		String publicKeyHash = hashPubKey(publicKey);
 		return CryptoUtil.MD5(publicKeyHash);
 	}
 	
+	/**
+	 * 根据钱包公钥生成钱包地址
+	 * @param publicKey
+	 * @return
+	 */
 	public static String getAddress(String publicKey) {
 		String publicKeyHash = hashPubKey(publicKey);
 		return CryptoUtil.MD5(publicKeyHash);
 	}
 
-	// HashPubKey hashes public key
+	/**
+	 * 获取钱包公钥hash
+	 * @return
+	 */
 	public String getHashPubKey() {
 		return CryptoUtil.SHA256(publicKey);
 	}
 	
-	// HashPubKey hashes public key
+	/**
+	 * 生成钱包公钥hash
+	 * @param publicKey
+	 * @return
+	 */
 	public static String hashPubKey(String publicKey) {
 		return CryptoUtil.SHA256(publicKey);
 	}

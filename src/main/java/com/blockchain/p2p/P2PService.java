@@ -28,7 +28,7 @@ public class P2PService {
     public void handleMessage(WebSocket webSocket, String s, List<WebSocket> sockets) {
         try {
             Message message = JSON.parseObject(s, Message.class);
-            System.out.println("Received message" + JSON.toJSONString(message));
+            System.out.println("接收到的p2p消息" + JSON.toJSONString(message));
             switch (message.getType()) {
                 case QUERY_LATEST:
                     write(webSocket, responseLatestMsg());
@@ -41,7 +41,7 @@ public class P2PService {
                     break;
             }
         } catch (Exception e) {
-            System.out.println("hanle message is error:" + e.getMessage());
+            System.out.println("处理p2p消息错误:" + e.getMessage());
         }
     }
 
@@ -57,17 +57,18 @@ public class P2PService {
         Block latestBlock = blockService.getLatestBlock();
         if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
             if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
-                System.out.println("We can append the received block to our chain");
+                System.out.println("将新接收到的区块加入到本地的区块链");
                 blockService.addBlock(latestBlockReceived);
                 broatcast(responseLatestMsg(), sockets);
             } else if (receiveBlocks.size() == 1) {
-                System.out.println("We have to query the chain from our peer");
+                System.out.println("查询所有通讯节点上的区块链");
                 broatcast(queryAllMsg(), sockets);
             } else {
+            	//用长链替换本地的短链
                 blockService.replaceChain(receiveBlocks);
             }
         } else {
-            System.out.println("received blockchain is not longer than received blockchain. Do nothing");
+            System.out.println("接收到的区块链不比本地区块链长，不处理");
         }
     }
 

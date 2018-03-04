@@ -3,7 +3,7 @@ package com.blockchain.model;
 import java.util.List;
 
 /**
- * 区块
+ * 区块结构
  * @author aaron
  *
  */
@@ -14,7 +14,7 @@ public class Block {
 	 */
 	private int index;
 	/**
-	 * 当前区块的hash值
+	 * 当前区块的hash值,区块唯一标识
 	 */
 	private String hash;
 	/**
@@ -22,11 +22,11 @@ public class Block {
 	 */
 	private long timestamp;
 	/**
-	 * 交易
+	 * 当前区块的交易集合
 	 */
 	private List<Transaction> transactions;
 	/**
-	 * 工作量证明
+	 * 工作量证明，计算正确hash值的次数
 	 */
 	private int nonce;
 	/**

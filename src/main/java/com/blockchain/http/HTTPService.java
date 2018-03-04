@@ -18,7 +18,7 @@ import com.blockchain.model.TransactionParam;
 import com.blockchain.p2p.P2PService;
 
 /**
- * 对外http服务
+ * 区块链对外http服务
  * @author aaron
  *
  */
@@ -41,10 +41,10 @@ public class HTTPService {
             
             //查询区块链
             context.addServlet(new ServletHolder(new ChainServlet()), "/chain");
-            //挖矿
-            context.addServlet(new ServletHolder(new MineServlet()), "/mine");
             //创建钱包
             context.addServlet(new ServletHolder(new CreateWalletServlet()), "/wallet/create");
+            //挖矿
+            context.addServlet(new ServletHolder(new MineServlet()), "/mine");
             //转账交易
             context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
             //查询钱包余额
@@ -61,7 +61,7 @@ public class HTTPService {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         	resp.setCharacterEncoding("UTF-8");
-        	resp.getWriter().print("当前区块链：" + blockService.getFullChain());
+        	resp.getWriter().print("当前区块链：" + JSON.toJSONString(blockService.getBlockchain()));
         }
     }
     

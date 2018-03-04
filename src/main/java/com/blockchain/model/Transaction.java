@@ -14,8 +14,17 @@ import com.blockchain.security.RSACoder;
  */
 public class Transaction {
 	
+	/**
+	 * 交易唯一标识
+	 */
 	private String id;   
+    /**
+     * 交易输入
+     */
     private TransactionInput txIn;
+    /**
+     * 交易输出
+     */
     private TransactionOutput txOut;
     
 	public Transaction(String id, TransactionInput txIn, TransactionOutput txOut) {
@@ -49,23 +58,26 @@ public class Transaction {
 		this.txOut = txOut;
 	}
 
+	/**
+	 * 是否系统生成区块的奖励交易
+	 * @return
+	 */
 	public boolean isCoinbase(){
 		return getTxIn().getTxId().equals("0") && getTxIn().getValue() == -1;
 	}
 
-	// Hash returns the hash of the Transaction
-	public String hash() {
-		return CryptoUtil.SHA256(JSON.toJSONString(this));
-	}
-
-	// Sign signs each input of a Transaction
+	/**
+	 * 用私钥生成交易签名
+	 * @param privateKey
+	 * @param prevTx
+	 */
 	public void sign(String privateKey, Transaction prevTx){
 		if (isCoinbase()) {
 			return;
 		}
 
 		if (!prevTx.getId().equals(getTxIn().getTxId())) {
-			System.err.println("ERROR: Previous transaction is not correct");
+			System.err.println("交易签名失败：当前交易输入引用的前一笔交易与传入的前一笔交易不匹配");
 		}
 		
 		Transaction txClone = cloneTx();
@@ -73,28 +85,35 @@ public class Transaction {
 		txClone.getTxIn().setPublicKey(prevTx.getTxOut().getPublicKeyHash());
 		String sign = "";
 		try {
-			sign = RSACoder.sign(txClone.getId().getBytes(), privateKey);
+			sign = RSACoder.sign(txClone.hash().getBytes(), privateKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		txIn.setSignature(sign);
 	}
 
-	// TrimmedCopy creates a trimmed copy of Transaction to be used in signing
+	/**
+	 * 生成用于交易签名的交易记录副本
+	 * @return
+	 */
 	public Transaction cloneTx()  {
 		TransactionInput transactionInput = new TransactionInput(txIn.getTxId(), txIn.getValue(), null, null);
 		TransactionOutput transactionOutput = new TransactionOutput(txOut.getValue(), txOut.getPublicKeyHash());
 		return new Transaction(id, transactionInput, transactionOutput);
 	}
 
-	// Verify verifies signatures of Transaction inputs
+	/**
+	 * 验证交易签名
+	 * @param prevTx
+	 * @return
+	 */
 	public boolean verify(Transaction prevTx){
 		if (isCoinbase()) {
 			return true;
 		}
 
 		if (!prevTx.getId().equals(txIn.getTxId())) {
-			System.err.println("ERROR: Previous transaction is not correct");
+			System.err.println("验证交易签名失败：当前交易输入引用的前一笔交易与传入的前一笔交易不匹配");
 		}
 		
 		Transaction txClone = cloneTx();
@@ -103,12 +122,19 @@ public class Transaction {
 		
 		boolean result = false;
 		try {
-			result = RSACoder.verify(txClone.getId().getBytes(), txIn.getPublicKey(), txIn.getSignature());
+			result = RSACoder.verify(txClone.hash().getBytes(), txIn.getPublicKey(), txIn.getSignature());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 		return result;
+	}
+	
+	/**
+	 * 生成交易的hash
+	 * @return
+	 */
+	public String hash() {
+		return CryptoUtil.SHA256(JSON.toJSONString(this));
 	}
 
 	@Override

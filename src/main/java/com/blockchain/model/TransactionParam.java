@@ -1,14 +1,23 @@
 package com.blockchain.model;
 
 /**
- * 交易参数
+ * 交易接口参数
  * @author aaron
  *
  */
 public class TransactionParam {
 	
+	/**
+	 * 发送方钱包地址
+	 */
 	private String sender;   
+    /**
+     * 接收方钱包地址
+     */
     private String recipient;
+    /**
+     * 发送金额
+     */
     private int Amount;
     
 	public String getSender() {

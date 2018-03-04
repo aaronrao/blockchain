@@ -7,7 +7,13 @@ import java.io.Serializable;
  *
  */
 public class Message implements Serializable{
+    /**
+     * 消息类型
+     */
     private int    type;
+    /**
+     * 消息内容
+     */
     private String data;
 
     public Message() {

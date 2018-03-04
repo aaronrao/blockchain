@@ -11,8 +11,17 @@ public class TransactionInput {
 	 * 前一次交易id
 	 */
 	private String txId;  
+	/**
+	 * 交易金额
+	 */
 	private int value;      
+	/**
+	 * 交易签名
+	 */
 	private String signature;
+	/**
+	 * 交易发送方的钱包公钥
+	 */
 	private String publicKey; 
 	
 	public TransactionInput(String txId, int value, String signature,

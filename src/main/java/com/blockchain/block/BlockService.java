@@ -18,14 +18,14 @@ import com.blockchain.model.Wallet;
 import com.blockchain.security.CryptoUtil;
 
 /**
- * 区块链
+ * 区块链核心服务
  * @author aaron
  *
  */
 public class BlockService {
 	
 	/**
-     * 区块链存储结构，链表
+     * 区块链存储结构，类似链表
      */
     private List<Block> blockchain = new LinkedList<Block>();
     
@@ -34,7 +34,7 @@ public class BlockService {
      */
     private Map<String, Wallet> walletMap = new HashMap<>();
 	/**
-	 * 转账交易
+	 * 转账交易集合
 	 */
 	private List<Transaction> currentTransactions = new ArrayList<>();
 	/**
@@ -42,28 +42,12 @@ public class BlockService {
 	 */
 	private List<Transaction> packedTransactions = new ArrayList<>();
 
-	public Map<String, Wallet> getWalletMap() {
-		return walletMap;
-	}
-
-	public void setWalletMap(Map<String, Wallet> walletMap) {
-		this.walletMap = walletMap;
-	}
-
-	public List<Block> getBlockchain() {
-		return blockchain;
-	}
-
-	public void setBlockchain(List<Block> blockchain) {
-		this.blockchain = blockchain;
-	}
-	
 	public BlockService() {
         //新建创始区块
-        Block genesisBlock = createNewBlock(100, "1", "1"); 
+        Block genesisBlock = createNewBlock(1, "1", "1", new ArrayList<Transaction>()); 
         System.out.println("生成创始区块：" + JSON.toJSONString(genesisBlock));
     }
-
+	
 	/**
 	 * 获取最新的区块，即当前链上最后一个区块
 	 * @return
@@ -72,18 +56,28 @@ public class BlockService {
 		return blockchain.size() > 0 ? blockchain.get(blockchain.size() - 1) : null;
 	}
 
+	/**
+	 * 添加新区块
+	 * @param newBlock
+	 */
 	public void addBlock(Block newBlock) {
         if (isValidNewBlock(newBlock, getLatestBlock())) {
         	blockchain.add(newBlock);
         }
     }
 	
+	/**
+	 * 验证新区块是否有效
+	 * @param newBlock
+	 * @param previousBlock
+	 * @return
+	 */
 	public boolean isValidNewBlock(Block newBlock, Block previousBlock) {
         if (previousBlock.getIndex() + 1 != newBlock.getIndex()) {
-            System.out.println("invalid index");
+            System.out.println("无效的区块索引");
             return false;
         } else if (!previousBlock.getHash().equals(newBlock.getPreviousHash())) {
-            System.out.println("invalid previoushash");
+            System.out.println("无效的区块hash");
             return false;
         } else {
         	//验证新区块hash值的正确性
@@ -100,11 +94,15 @@ public class BlockService {
         return true;
     }
 	
+	/**
+	 * 替换本地区块链
+	 * @param newBlocks
+	 */
 	public void replaceChain(List<Block> newBlocks) {
         if (isValidChain(newBlocks) && newBlocks.size() > blockchain.size()) {
             blockchain = newBlocks;
         } else {
-            System.out.println("Received blockchain invalid");
+            System.out.println("接收的区块链无效");
         }
     }
 	
@@ -130,11 +128,8 @@ public class BlockService {
         return true;
     }
 
-    private Block createNewBlock(int nonce, String previousHash, String hash)
+    private Block createNewBlock(int nonce, String previousHash, String hash, List<Transaction> blockTxs)
     {
-    	//去除已打包进区块的交易
-    	List<Transaction> blockTxs = new ArrayList<Transaction>(currentTransactions);
-    	blockTxs.removeAll(packedTransactions);
     	Block block = new Block(blockchain.size() + 1, System.currentTimeMillis(), blockTxs, nonce, previousHash, hash);
         blockchain.add(block);
         //加入新打包的交易
@@ -142,10 +137,22 @@ public class BlockService {
         return block;
     }
 
+    /**
+     * 验证hash值是否满足系统条件
+     * @param hash
+     * @return
+     */
     private boolean isValidHash(String hash){
     	return hash.startsWith("0000");
     }
 
+    /**
+     * 计算区块的hash
+     * @param previousHash
+     * @param currentTransactions
+     * @param nonce
+     * @return
+     */
     private String calculateHash(String previousHash, List<Transaction> currentTransactions, int nonce) {
         return CryptoUtil.SHA256(previousHash + JSON.toJSONString(currentTransactions) + nonce);
     }
@@ -167,8 +174,10 @@ public class BlockService {
 		}
     	//去除无效的交易
     	currentTransactions.removeAll(invalidTxs);
-    	//获取当前区块链里最后一个区块
-    	Block lastBlock = getLatestBlock();
+    	
+    	//去除已打包进区块的交易
+    	List<Transaction> blockTxs = new ArrayList<Transaction>(currentTransactions);
+    	blockTxs.removeAll(packedTransactions);
     	
         String hash = "";
         boolean isValidNonce = false;
@@ -177,7 +186,7 @@ public class BlockService {
         System.out.println("开始挖矿");
         while (!isValidNonce){
         	//计算新区块hash值
-        	hash = calculateHash(lastBlock.getHash(), currentTransactions, nonce);
+        	hash = calculateHash(getLatestBlock().getHash(), blockTxs, nonce);
         	//校验hash值
         	isValidNonce = isValidHash(hash);
         	if (isValidNonce) {
@@ -190,20 +199,19 @@ public class BlockService {
         }
     	
         //创建新的区块
-        Block block = createNewBlock(nonce, lastBlock.getHash(), hash);
+        Block block = createNewBlock(nonce, getLatestBlock().getHash(), hash, blockTxs);
         return JSON.toJSONString(block);
     }
 
-    public String getFullChain() {
-    	JSONObject result = new JSONObject();
-    	result.put("chain", blockchain);
-        result.put("length", blockchain.size());
-        return result.toJSONString();
-    }
-    
+    /**
+     * 生成区块的奖励交易
+     * @param toAddress
+     * @param data
+     * @return
+     */
     public Transaction newCoinbaseTx(String toAddress, String data){
 		if ("".equals(data)){
-	        data = "Reward to " + toAddress;
+	        data = "奖励到钱包 " + toAddress;
 	    }
 		
 		TransactionInput txIn = new TransactionInput("0", -1, null, null);
@@ -212,6 +220,13 @@ public class BlockService {
 		return new Transaction(CryptoUtil.UUID(), txIn, txOut);
 	}
 
+    /**
+     * 创建交易
+     * @param fromAddress
+     * @param toAddress
+     * @param amount
+     * @return
+     */
     public int createTransaction(String fromAddress, String toAddress, int amount)
     {
     	Wallet senderWallet = walletMap.get(fromAddress);
@@ -239,6 +254,11 @@ public class BlockService {
         return lastBlock != null ? lastBlock.getIndex() + 1 : 0;
     }
     
+    /**
+     * 查找未被消费的交易
+     * @param address
+     * @return
+     */
     private List<Transaction> findUnspentTransactions(String address) {
     	List<Transaction> unspentTxs = new ArrayList<Transaction>();
     	Set<String> spentTxs = new HashSet<String>();
@@ -282,6 +302,10 @@ public class BlockService {
         return tx.verify(prevTx);
     }
     
+    /**
+     * 创建钱包
+     * @return
+     */
     public String createWallet() {
     	Wallet wallet = new Wallet();
     	String address = wallet.getAddress();
@@ -289,6 +313,11 @@ public class BlockService {
     	return address;
     }
 
+	/**
+	 * 获取钱包余额
+	 * @param address
+	 * @return
+	 */
 	public int getWalletBalance(String address) {
     	List<Transaction> unspentTxs = findUnspentTransactions(address);
     	int balance = 0;
@@ -298,6 +327,17 @@ public class BlockService {
     	return balance;
     }
     
-   
+	public Map<String, Wallet> getWalletMap() {
+		return walletMap;
+	}
+	public void setWalletMap(Map<String, Wallet> walletMap) {
+		this.walletMap = walletMap;
+	}
+	public List<Block> getBlockchain() {
+		return blockchain;
+	}
+	public void setBlockchain(List<Block> blockchain) {
+		this.blockchain = blockchain;
+	}
     
 }
