@@ -37,6 +37,10 @@ public class BlockService {
 	 * 转账交易
 	 */
 	private List<Transaction> currentTransactions = new ArrayList<>();
+	/**
+	 * 已打包转账交易
+	 */
+	private List<Transaction> packedTransactions = new ArrayList<>();
 
 	public Map<String, Wallet> getWalletMap() {
 		return walletMap;
@@ -128,10 +132,13 @@ public class BlockService {
 
     private Block createNewBlock(int nonce, String previousHash, String hash)
     {
-    	//TODO 已花费交易要去除
-    	Block block = new Block(blockchain.size() + 1, System.currentTimeMillis(), new ArrayList(currentTransactions), nonce, previousHash, hash);
-    	//currentTransactions.clear();
+    	//去除已打包进区块的交易
+    	List<Transaction> blockTxs = new ArrayList<Transaction>(currentTransactions);
+    	blockTxs.removeAll(packedTransactions);
+    	Block block = new Block(blockchain.size() + 1, System.currentTimeMillis(), blockTxs, nonce, previousHash, hash);
         blockchain.add(block);
+        //加入新打包的交易
+        packedTransactions.addAll(blockTxs);
         return block;
     }
 
@@ -158,7 +165,7 @@ public class BlockService {
 				invalidTxs.add(tx);
 			}
 		}
-    	
+    	//去除无效的交易
     	currentTransactions.removeAll(invalidTxs);
     	//获取当前区块链里最后一个区块
     	Block lastBlock = getLatestBlock();
@@ -184,15 +191,7 @@ public class BlockService {
     	
         //创建新的区块
         Block block = createNewBlock(nonce, lastBlock.getHash(), hash);
-
-        JSONObject result = new JSONObject();
-        result.put("message", "new block gen");
-        result.put("index", block.getIndex());
-        result.put("transactions", block.getTransactions());
-        result.put("nonce", block.getNonce());
-        result.put("hash", block.getHash());
-        result.put("previousHash", block.getPreviousHash());
-        return result.toJSONString();
+        return JSON.toJSONString(block);
     }
 
     public String getFullChain() {
@@ -217,6 +216,9 @@ public class BlockService {
     {
     	Wallet senderWallet = walletMap.get(fromAddress);
     	Wallet recipientWallet = walletMap.get(toAddress);
+    	if (senderWallet == null || recipientWallet == null) {
+			return -1;
+		}
     	List<Transaction> unspentTxs = findUnspentTransactions(senderWallet.getAddress());
     	Transaction prevTx = null;
     	for (Transaction transaction : unspentTxs) {
@@ -240,12 +242,12 @@ public class BlockService {
     private List<Transaction> findUnspentTransactions(String address) {
     	List<Transaction> unspentTxs = new ArrayList<Transaction>();
     	Set<String> spentTxs = new HashSet<String>();
-    	for (Block block : blockchain) {
-			List<Transaction> transactions = block.getTransactions();
-			for (Transaction tx : transactions) {
-				if (address.equals(Wallet.getAddress(tx.getTxIn().getPublicKey()))) {
-					spentTxs.add(tx.getTxIn().getTxId());
-				}
+		for (Transaction tx : currentTransactions) {
+			if (tx.isCoinbase()) {
+				continue;
+			}
+			if (address.equals(Wallet.getAddress(tx.getTxIn().getPublicKey()))) {
+				spentTxs.add(tx.getTxIn().getTxId());
 			}
 		}
     	
