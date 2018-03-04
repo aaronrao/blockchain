@@ -24,7 +24,7 @@ public class Main {
                 System.out.println("startup is error:" + e.getMessage());
             }
         } else {
-            System.out.println("usage: java -jar blockchain.jar 8080 6001");
+            System.out.println("usage: java -jar blockchain.jar 8081 7001");
         }
     }
 

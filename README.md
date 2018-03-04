@@ -39,7 +39,7 @@ java -jar blockchain.jar 8082 7002 ws://localhost:7001
   curl http://localhost:8081/transactions/new
 
   ```
-- ≤È—Ø«Æ”‡∂Ó
+- ≤È—Ø«Æ∞¸”‡∂Ó
 
   ```
   curl http://localhost:8081/wallet/balance/get?address=518522f475ab591cf55d5f79bef629a0
