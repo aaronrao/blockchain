@@ -1,8 +1,5 @@
 package com.blockchain.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.alibaba.fastjson.JSON;
 import com.blockchain.security.CryptoUtil;
 import com.blockchain.security.RSACoder;
@@ -27,6 +24,10 @@ public class Transaction {
      */
     private TransactionOutput txOut;
     
+	public Transaction() {
+		super();
+	}
+
 	public Transaction(String id, TransactionInput txIn, TransactionOutput txOut) {
 		super();
 		this.id = id;

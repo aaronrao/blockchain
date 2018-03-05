@@ -34,6 +34,10 @@ public class Block {
 	 */
 	private String previousHash;
 	
+	public Block() {
+		super();
+	}
+	
 	public Block(int index, long timestamp, List<Transaction> transactions,
 			int nonce, String previousHash, String hash) {
 		super();

@@ -24,6 +24,10 @@ public class TransactionInput {
 	 */
 	private String publicKey; 
 	
+	public TransactionInput() {
+		super();
+	}
+
 	public TransactionInput(String txId, int value, String signature,
 			String publicKey) {
 		super();

@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.blockchain.model.Block;
 import com.blockchain.model.Transaction;
 import com.blockchain.model.TransactionInput;
@@ -114,9 +113,6 @@ public class BlockService {
         while (currentIndex < chain.size())
         {
             block = chain.get(currentIndex);
-            System.out.println("lastBlock:" + lastBlock);
-            System.out.println("block:" + block);
-            System.out.println("----------------------------");
 
             if (!isValidNewBlock(block, lastBlock)) {
             	return false;

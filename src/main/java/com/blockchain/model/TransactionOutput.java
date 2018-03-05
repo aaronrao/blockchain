@@ -16,6 +16,10 @@ public class TransactionOutput {
 	 */
 	private String publicKeyHash;
 	
+	public TransactionOutput() {
+		super();
+	}
+
 	public int getValue() {
 		return value;
 	}

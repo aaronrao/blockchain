@@ -28,7 +28,7 @@ public class P2PService {
     public void handleMessage(WebSocket webSocket, String s, List<WebSocket> sockets) {
         try {
             Message message = JSON.parseObject(s, Message.class);
-            System.out.println("接收到的p2p消息" + JSON.toJSONString(message));
+            System.out.println("接收到" + webSocket.getRemoteSocketAddress().getPort() + "的p2p消息" + JSON.toJSONString(message));
             switch (message.getType()) {
                 case QUERY_LATEST:
                     write(webSocket, responseLatestMsg());
@@ -73,13 +73,16 @@ public class P2PService {
     }
 
     public void write(WebSocket ws, String message) {
+    	System.out.println("发送给" + ws.getRemoteSocketAddress().getPort() + "的p2p消息:" + message);
         ws.send(message);
     }
 
     public void broatcast(String message, List<WebSocket> sockets) {
+    	System.out.println("======广播消息开始：");
         for (WebSocket socket : sockets) {
             this.write(socket, message);
         }
+        System.out.println("======广播消息结束：");
     }
 
     public String queryAllMsg() {

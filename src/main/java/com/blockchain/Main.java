@@ -16,7 +16,7 @@ public class Main {
         if (args != null && (args.length == 1 ||args.length == 2 || args.length == 3)) {
             try {
                 BlockService blockService = new BlockService();
-                //startP2PServer(args, blockService);
+                startP2PServer(args, blockService);
                 HTTPService httpService = new HTTPService(blockService, null);
                 int httpPort = Integer.valueOf(args[0]);
                 httpService.initHTTPServer(httpPort);
