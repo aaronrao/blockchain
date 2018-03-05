@@ -51,6 +51,8 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new ChainServlet()), "/chain");
             //创建钱包
             context.addServlet(new ServletHolder(new CreateWalletServlet()), "/wallet/create");
+            //查询钱包
+            context.addServlet(new ServletHolder(new GetWalletsServlet()), "/wallet/get");
             //挖矿
             context.addServlet(new ServletHolder(new MineServlet()), "/mine");
             //转账交易
@@ -103,8 +105,21 @@ public class HTTPService {
         }
     }
     
+    private class GetWalletsServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        	resp.setCharacterEncoding("UTF-8");
+        	resp.getWriter().print("当前节点钱包：" + JSON.toJSONString(blockService.getMyWalletMap().values()));
+        }
+    }
+    
     private class NewTransactionServlet extends HttpServlet {
-    	@Override
+    	/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5928806783225163929L;
+
+		@Override
     	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     		resp.setCharacterEncoding("UTF-8");
     		TransactionParam txParam = JSON.parseObject(getReqBody(req), TransactionParam.class); 
