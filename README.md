@@ -38,6 +38,12 @@ java -jar blockchain.jar 8082 7002 ws://localhost:7001
   curl -H "Content-type:application/json" --data '{"sender": "d4e44223434sdfdgerewfd3fefe9dfe","recipient": "45adiy5grt4544sdfdg454efe54dssq5","amount": 10}' http://localhost:8081/transactions/new
   ```
   
+- 查询当前节点所有钱包(GET)
+
+  ```
+  curl http://localhost:8081/wallet/get
+  ```
+  
 - 查询钱包余额(GET)
 
   ```
