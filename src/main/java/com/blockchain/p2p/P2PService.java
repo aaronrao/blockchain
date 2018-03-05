@@ -9,6 +9,8 @@ import org.java_websocket.WebSocket;
 import com.alibaba.fastjson.JSON;
 import com.blockchain.block.BlockService;
 import com.blockchain.model.Block;
+import com.blockchain.model.Transaction;
+import com.blockchain.model.Wallet;
 
 /**
  * p2p公用服务类
@@ -17,9 +19,11 @@ import com.blockchain.model.Block;
  */
 public class P2PService {
     private BlockService    blockService;
-    private final static int QUERY_LATEST        = 0;
-    private final static int QUERY_ALL           = 1;
-    private final static int RESPONSE_BLOCKCHAIN = 2;
+    public final static int QUERY_LATEST        = 0;
+    public final static int QUERY_ALL           = 1;
+    public final static int RESPONSE_BLOCKCHAIN = 2;
+    public final static int RESPONSE_WALLET = 3;
+    public final static int RESPONSE_Transaction = 4;
 
     public P2PService(BlockService blockService) {
         this.blockService = blockService;
@@ -39,6 +43,12 @@ public class P2PService {
                 case RESPONSE_BLOCKCHAIN:
                     handleBlockChainResponse(message.getData(), sockets);
                     break;
+                case RESPONSE_WALLET:
+                	handleWalletResponse(message.getData());
+                	break;
+                case RESPONSE_Transaction:
+                	handleTransactionResponse(message.getData());
+                	break;
             }
         } catch (Exception e) {
             System.out.println("处理p2p消息错误:" + e.getMessage());
@@ -71,6 +81,16 @@ public class P2PService {
             System.out.println("接收到的区块链不比本地区块链长，不处理");
         }
     }
+    
+    public void handleWalletResponse(String message) {
+    	Wallet wallet = JSON.parseObject(message, Wallet.class);
+    	blockService.getOtherWalletMap().put(wallet.getAddress(), wallet);
+    }
+    
+    public void handleTransactionResponse(String message) {
+    	Transaction tx = JSON.parseObject(message, Transaction.class);
+    	blockService.getCurrentTransactions().add(tx);
+    }
 
     public void write(WebSocket ws, String message) {
     	System.out.println("发送给" + ws.getRemoteSocketAddress().getPort() + "的p2p消息:" + message);
@@ -82,7 +102,7 @@ public class P2PService {
         for (WebSocket socket : sockets) {
             this.write(socket, message);
         }
-        System.out.println("======广播消息结束：");
+        System.out.println("======广播消息结束");
     }
 
     public String queryAllMsg() {
@@ -101,5 +121,5 @@ public class P2PService {
         Block[] blocks = {blockService.getLatestBlock()};
         return JSON.toJSONString(new Message(RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks)));
     }
-
+    
 }

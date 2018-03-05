@@ -31,7 +31,13 @@ public class BlockService {
     /**
      * 当前节点钱包集合
      */
-    private Map<String, Wallet> walletMap = new HashMap<>();
+    private Map<String, Wallet> myWalletMap = new HashMap<>();
+    
+    /**
+     * 其他节点钱包集合，钱包只包含公钥
+     */
+    private Map<String, Wallet> otherWalletMap = new HashMap<>();
+    
 	/**
 	 * 转账交易集合
 	 */
@@ -62,7 +68,10 @@ public class BlockService {
 	public void addBlock(Block newBlock) {
         if (isValidNewBlock(newBlock, getLatestBlock())) {
         	blockchain.add(newBlock);
+        	//新区块的交易需要加入已打包的交易集合里去
+        	packedTransactions.addAll(newBlock.getTransactions());
         }
+        
     }
 	
 	/**
@@ -157,7 +166,7 @@ public class BlockService {
      * 挖矿
      * @return
      */
-    public String mine(String toAddress) {
+    public Block mine(String toAddress) {
     	//创建系统奖励的交易
         currentTransactions.add(newCoinbaseTx(toAddress, ""));
     	
@@ -196,7 +205,7 @@ public class BlockService {
     	
         //创建新的区块
         Block block = createNewBlock(nonce, getLatestBlock().getHash(), hash, blockTxs);
-        return JSON.toJSONString(block);
+        return block;
     }
 
     /**
@@ -206,12 +215,8 @@ public class BlockService {
      * @return
      */
     public Transaction newCoinbaseTx(String toAddress, String data){
-		if ("".equals(data)){
-	        data = "奖励到钱包 " + toAddress;
-	    }
-		
 		TransactionInput txIn = new TransactionInput("0", -1, null, null);
-		Wallet wallet = walletMap.get(toAddress);
+		Wallet wallet = myWalletMap.get(toAddress);
 		TransactionOutput txOut = new TransactionOutput(10, wallet.getHashPubKey());
 		return new Transaction(CryptoUtil.UUID(), txIn, txOut);
 	}
@@ -223,13 +228,9 @@ public class BlockService {
      * @param amount
      * @return
      */
-    public int createTransaction(String fromAddress, String toAddress, int amount)
+    public Transaction createTransaction(Wallet senderWallet, Wallet recipientWallet, int amount)
     {
-    	Wallet senderWallet = walletMap.get(fromAddress);
-    	Wallet recipientWallet = walletMap.get(toAddress);
-    	if (senderWallet == null || recipientWallet == null) {
-			return -1;
-		}
+    	
     	List<Transaction> unspentTxs = findUnspentTransactions(senderWallet.getAddress());
     	Transaction prevTx = null;
     	for (Transaction transaction : unspentTxs) {
@@ -239,15 +240,14 @@ public class BlockService {
 			}
 		}
     	if (prevTx == null) {
-			return 0;
+			return null;
 		}
     	TransactionInput txIn = new TransactionInput(prevTx.getId(), amount, null, senderWallet.getPublicKey());
     	TransactionOutput txOut = new TransactionOutput(amount, recipientWallet.getHashPubKey());
     	Transaction transaction = new Transaction(CryptoUtil.UUID(), txIn, txOut);
     	transaction.sign(senderWallet.getPrivateKey(), prevTx);
         currentTransactions.add(transaction);
-        Block lastBlock = getLatestBlock();
-        return lastBlock != null ? lastBlock.getIndex() + 1 : 0;
+        return transaction;
     }
     
     /**
@@ -302,11 +302,11 @@ public class BlockService {
      * 创建钱包
      * @return
      */
-    public String createWallet() {
+    public Wallet createWallet() {
     	Wallet wallet = new Wallet();
     	String address = wallet.getAddress();
-    	walletMap.put(address, wallet);
-    	return address;
+    	myWalletMap.put(address, wallet);
+    	return wallet;
     }
 
 	/**
@@ -323,17 +323,43 @@ public class BlockService {
     	return balance;
     }
     
-	public Map<String, Wallet> getWalletMap() {
-		return walletMap;
-	}
-	public void setWalletMap(Map<String, Wallet> walletMap) {
-		this.walletMap = walletMap;
-	}
 	public List<Block> getBlockchain() {
 		return blockchain;
 	}
 	public void setBlockchain(List<Block> blockchain) {
 		this.blockchain = blockchain;
 	}
-    
+
+	public Map<String, Wallet> getMyWalletMap() {
+		return myWalletMap;
+	}
+
+	public void setMyWalletMap(Map<String, Wallet> myWalletMap) {
+		this.myWalletMap = myWalletMap;
+	}
+
+	public Map<String, Wallet> getOtherWalletMap() {
+		return otherWalletMap;
+	}
+
+	public void setOtherWalletMap(Map<String, Wallet> otherWalletMap) {
+		this.otherWalletMap = otherWalletMap;
+	}
+
+	public List<Transaction> getCurrentTransactions() {
+		return currentTransactions;
+	}
+
+	public void setCurrentTransactions(List<Transaction> currentTransactions) {
+		this.currentTransactions = currentTransactions;
+	}
+
+	public List<Transaction> getPackedTransactions() {
+		return packedTransactions;
+	}
+
+	public void setPackedTransactions(List<Transaction> packedTransactions) {
+		this.packedTransactions = packedTransactions;
+	}
+	
 }

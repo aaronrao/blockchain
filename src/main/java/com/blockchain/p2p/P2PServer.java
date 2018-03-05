@@ -21,8 +21,8 @@ public class P2PServer {
         this.p2pService = p2pService;
         this.sockets = new ArrayList<WebSocket>();
     }
-
-    public void initP2PServer(int port) {
+    
+	public void initP2PServer(int port) {
         final WebSocketServer socketServer = new WebSocketServer(new InetSocketAddress(port)) {
             public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
             	p2pService.write(webSocket, p2pService.queryChainLengthMsg());
@@ -50,8 +50,21 @@ public class P2PServer {
         socketServer.start();
         System.out.println("listening websocket p2p port on: " + port);
     }
-
+    
     public List<WebSocket> getSockets() {
         return sockets;
+    }
+    
+    public void write(WebSocket ws, String message) {
+    	System.out.println("发送给" + ws.getRemoteSocketAddress().getPort() + "的p2p消息:" + message);
+        ws.send(message);
+    }
+
+    public void broatcast(String message) {
+    	System.out.println("======广播消息开始：");
+        for (WebSocket socket : sockets) {
+            this.write(socket, message);
+        }
+        System.out.println("======广播消息结束");
     }
 }

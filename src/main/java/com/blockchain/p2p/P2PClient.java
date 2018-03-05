@@ -58,4 +58,17 @@ public class P2PClient {
     public List<WebSocket> getSockets() {
         return sockets;
     }
+    
+    public void write(WebSocket ws, String message) {
+    	System.out.println("发送给" + ws.getRemoteSocketAddress().getPort() + "的p2p消息:" + message);
+        ws.send(message);
+    }
+
+    public void broatcast(String message) {
+    	System.out.println("======广播消息开始：");
+        for (WebSocket socket : sockets) {
+            this.write(socket, message);
+        }
+        System.out.println("======广播消息结束");
+    }
 }

@@ -50,6 +50,14 @@ public class Wallet {
 	}
 	
 	/**
+	 * 只包含公钥的钱包，用来给其他节点使用，其他节点在转账时需要用到
+	 * @param publicKey
+	 */
+	public Wallet(String publicKey) {
+		this.publicKey = publicKey;
+	}
+	
+	/**
 	 * 获取钱包地址
 	 * @return
 	 */
