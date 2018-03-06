@@ -1,11 +1,12 @@
 # blockchain
-blockchain - 一个简单的区块链与比特币的实现，包含区块链与比特币的一些基础特性，如去中心化，P2P通讯，比特币交易， 挖矿，共识算法，比特币钱包等
+blockchain - 一个简单的区块链与比特币的实现，包含区块链与比特币的一些基础特性，如去中心化， 挖矿，共识算法，密码学验证，比特币交易，比特币钱包，P2P通讯网络等
 
 ### Quick start
 ```
 git clone https://github.com/aaronrao/blockchain.git
 cd blockchain
 mvn clean install
+cd target
 java -jar blockchain.jar 8081 7001
 java -jar blockchain.jar 8082 7002 ws://localhost:7001
 

@@ -2,19 +2,20 @@ package com.blockchain.model;
 
 /**
  * 交易输入
+ * 
  * @author aaron
  *
  */
 public class TransactionInput {
-	
+
 	/**
 	 * 前一次交易id
 	 */
-	private String txId;  
+	private String txId;
 	/**
 	 * 交易金额
 	 */
-	private int value;      
+	private int value;
 	/**
 	 * 交易签名
 	 */
@@ -22,14 +23,13 @@ public class TransactionInput {
 	/**
 	 * 交易发送方的钱包公钥
 	 */
-	private String publicKey; 
-	
+	private String publicKey;
+
 	public TransactionInput() {
 		super();
 	}
 
-	public TransactionInput(String txId, int value, String signature,
-			String publicKey) {
+	public TransactionInput(String txId, int value, String signature, String publicKey) {
 		super();
 		this.txId = txId;
 		this.value = value;
