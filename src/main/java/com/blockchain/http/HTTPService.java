@@ -2,6 +2,8 @@ package com.blockchain.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -57,6 +59,8 @@ public class HTTPService {
             context.addServlet(new ServletHolder(new MineServlet()), "/mine");
             //转账交易
             context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
+            //转账交易
+            context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/unpacked/get");
             //查询钱包余额
             context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/balance/get");
             
@@ -114,11 +118,6 @@ public class HTTPService {
     }
     
     private class NewTransactionServlet extends HttpServlet {
-    	/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5928806783225163929L;
-
 		@Override
     	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     		resp.setCharacterEncoding("UTF-8");
@@ -151,6 +150,16 @@ public class HTTPService {
     		resp.setCharacterEncoding("UTF-8");
     		String address = req.getParameter("address");
     		resp.getWriter().print("钱包余额为：" + blockService.getWalletBalance(address) + "BTC");
+    	}
+    }
+    
+    private class GetUnpackedTransactionServlet extends HttpServlet {
+    	@Override
+    	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    		resp.setCharacterEncoding("UTF-8");
+    		List<Transaction> transactions = new ArrayList<>(blockService.getCurrentTransactions());
+    		transactions.removeAll(blockService.getPackedTransactions());
+    		resp.getWriter().print("本节点未打包交易：" + JSON.toJSONString(transactions));
     	}
     }
 
