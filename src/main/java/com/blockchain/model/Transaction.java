@@ -65,7 +65,7 @@ public class Transaction {
 	 * 
 	 * @return
 	 */
-	public boolean isCoinbase() {
+	public boolean coinbaseTx() {
 		return txIn.getTxId().equals("0") && getTxIn().getValue() == -1;
 	}
 
@@ -76,7 +76,7 @@ public class Transaction {
 	 * @param prevTx
 	 */
 	public void sign(String privateKey, Transaction prevTx) {
-		if (isCoinbase()) {
+		if (coinbaseTx()) {
 			return;
 		}
 
@@ -113,7 +113,7 @@ public class Transaction {
 	 * @return
 	 */
 	public boolean verify(Transaction prevTx) {
-		if (isCoinbase()) {
+		if (coinbaseTx()) {
 			return true;
 		}
 

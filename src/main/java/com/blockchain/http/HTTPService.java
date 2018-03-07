@@ -88,10 +88,12 @@ public class HTTPService {
 			Wallet myWallet = blockService.getMyWalletMap().get(address);
 			if (myWallet == null) {
 				resp.getWriter().print("挖矿指定的钱包不存在");
+				return;
 			}
 			Block newBlock = blockService.mine(address);
 			if (newBlock == null) {
 				resp.getWriter().print("挖矿失败，可能有其他节点已挖出该区块");
+				return;
 			}
 			Block[] blocks = {newBlock};
 			String msg = JSON.toJSONString(new Message(P2PService.RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks)));
@@ -135,6 +137,7 @@ public class HTTPService {
 			}
 			if (senderWallet == null || recipientWallet == null) {
 				resp.getWriter().print("钱包不存在");
+				return;
 			}
 
 			Transaction newTransaction = blockService.createTransaction(senderWallet, recipientWallet,

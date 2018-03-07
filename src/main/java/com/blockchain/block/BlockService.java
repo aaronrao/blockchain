@@ -51,6 +51,7 @@ public class BlockService {
 	public BlockService() {
 		// 新建创始区块
 		Block genesisBlock = new Block(1, System.currentTimeMillis(), new ArrayList<Transaction>(), 1, "1", "1");
+		blockchain.add(genesisBlock);
 		System.out.println("生成创始区块：" + JSON.toJSONString(genesisBlock));
 	}
 
@@ -275,7 +276,7 @@ public class BlockService {
 		List<Transaction> unspentTxs = new ArrayList<Transaction>();
 		Set<String> spentTxs = new HashSet<String>();
 		for (Transaction tx : allTransactions) {
-			if (tx.isCoinbase()) {
+			if (tx.coinbaseTx()) {
 				continue;
 			}
 			if (address.equals(Wallet.getAddress(tx.getTxIn().getPublicKey()))) {
@@ -307,7 +308,7 @@ public class BlockService {
 	}
 
 	private boolean verifyTransaction(Transaction tx) {
-		if (tx.isCoinbase()) {
+		if (tx.coinbaseTx()) {
 			return true;
 		}
 		Transaction prevTx = findTransaction(tx.getTxIn().getTxId());
