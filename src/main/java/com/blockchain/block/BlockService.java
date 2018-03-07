@@ -3,7 +3,6 @@ package com.blockchain.block;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,9 +24,9 @@ import com.blockchain.security.CryptoUtil;
 public class BlockService {
 
 	/**
-	 * 区块链存储结构，类似链表
+	 * 区块链存储结构
 	 */
-	private List<Block> blockchain = new LinkedList<Block>();
+	private List<Block> blockchain = new ArrayList<Block>();
 
 	/**
 	 * 当前节点钱包集合
@@ -51,7 +50,7 @@ public class BlockService {
 
 	public BlockService() {
 		// 新建创始区块
-		Block genesisBlock = createNewBlock(1, "1", "1", new ArrayList<Transaction>());
+		Block genesisBlock = new Block(1, System.currentTimeMillis(), new ArrayList<Transaction>(), 1, "1", "1");
 		System.out.println("生成创始区块：" + JSON.toJSONString(genesisBlock));
 	}
 
@@ -69,12 +68,14 @@ public class BlockService {
 	 * 
 	 * @param newBlock
 	 */
-	public void addBlock(Block newBlock) {
+	public boolean addBlock(Block newBlock) {
 		if (isValidNewBlock(newBlock, getLatestBlock())) {
 			blockchain.add(newBlock);
 			// 新区块的交易需要加入已打包的交易集合里去
 			packedTransactions.addAll(newBlock.getTransactions());
+			return true;
 		}
+		return false;
 	}
 
 	/**
@@ -140,12 +141,10 @@ public class BlockService {
 
 	private Block createNewBlock(int nonce, String previousHash, String hash, List<Transaction> blockTxs) {
 		Block block = new Block(blockchain.size() + 1, System.currentTimeMillis(), blockTxs, nonce, previousHash, hash);
-		if (isValidNewBlock(block, previousBlock)) {
-			blockchain.add(block);
-        }
-		// 加入新打包的交易
-		packedTransactions.addAll(blockTxs);
-		return block;
+		if (addBlock(block)) {
+			return block;
+		}
+		return null;
 	}
 
 	/**
@@ -249,6 +248,7 @@ public class BlockService {
 		List<Transaction> unspentTxs = findUnspentTransactions(senderWallet.getAddress());
 		Transaction prevTx = null;
 		for (Transaction transaction : unspentTxs) {
+			//TODO 找零
 			if (transaction.getTxOut().getValue() == amount) {
 				prevTx = transaction;
 				break;

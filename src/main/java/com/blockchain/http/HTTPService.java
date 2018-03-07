@@ -90,7 +90,10 @@ public class HTTPService {
 				resp.getWriter().print("挖矿指定的钱包不存在");
 			}
 			Block newBlock = blockService.mine(address);
-			Block[] blocks = { newBlock };
+			if (newBlock == null) {
+				resp.getWriter().print("挖矿失败，可能有其他节点已挖出该区块");
+			}
+			Block[] blocks = {newBlock};
 			String msg = JSON.toJSONString(new Message(P2PService.RESPONSE_BLOCKCHAIN, JSON.toJSONString(blocks)));
 			p2pServer.broatcast(msg);
 			p2pClient.broatcast(msg);

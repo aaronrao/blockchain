@@ -70,8 +70,9 @@ public class P2PService {
 		if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
 			if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
 				System.out.println("将新接收到的区块加入到本地的区块链");
-				blockService.addBlock(latestBlockReceived);
-				broatcast(responseLatestMsg(), sockets);
+				if (blockService.addBlock(latestBlockReceived)) {
+					broatcast(responseLatestMsg(), sockets);
+				}
 			} else if (receiveBlocks.size() == 1) {
 				System.out.println("查询所有通讯节点上的区块链");
 				broatcast(queryAllMsg(), sockets);

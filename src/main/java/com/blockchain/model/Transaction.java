@@ -85,7 +85,6 @@ public class Transaction {
 		}
 
 		Transaction txClone = cloneTx();
-		txClone.getTxIn().setSignature(null);
 		txClone.getTxIn().setPublicKey(prevTx.getTxOut().getPublicKeyHash());
 		String sign = "";
 		try {
@@ -123,7 +122,6 @@ public class Transaction {
 		}
 
 		Transaction txClone = cloneTx();
-		txClone.getTxIn().setSignature(null);
 		txClone.getTxIn().setPublicKey(prevTx.getTxOut().getPublicKeyHash());
 
 		boolean result = false;
