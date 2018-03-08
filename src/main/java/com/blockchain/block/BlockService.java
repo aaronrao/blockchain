@@ -26,7 +26,7 @@ public class BlockService {
 	/**
 	 * 区块链存储结构
 	 */
-	private List<Block> blockchain = new ArrayList<Block>();
+	private List<Block> blockChain = new ArrayList<Block>();
 
 	/**
 	 * 当前节点钱包集合
@@ -51,7 +51,7 @@ public class BlockService {
 	public BlockService() {
 		// 新建创始区块
 		Block genesisBlock = new Block(1, System.currentTimeMillis(), new ArrayList<Transaction>(), 1, "1", "1");
-		blockchain.add(genesisBlock);
+		blockChain.add(genesisBlock);
 		System.out.println("生成创始区块：" + JSON.toJSONString(genesisBlock));
 	}
 
@@ -61,7 +61,7 @@ public class BlockService {
 	 * @return
 	 */
 	public Block getLatestBlock() {
-		return blockchain.size() > 0 ? blockchain.get(blockchain.size() - 1) : null;
+		return blockChain.size() > 0 ? blockChain.get(blockChain.size() - 1) : null;
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class BlockService {
 	 */
 	public boolean addBlock(Block newBlock) {
 		if (isValidNewBlock(newBlock, getLatestBlock())) {
-			blockchain.add(newBlock);
+			blockChain.add(newBlock);
 			// 新区块的交易需要加入已打包的交易集合里去
 			packedTransactions.addAll(newBlock.getTransactions());
 			return true;
@@ -133,15 +133,20 @@ public class BlockService {
 	 * @param newBlocks
 	 */
 	public void replaceChain(List<Block> newBlocks) {
-		if (isValidChain(newBlocks) && newBlocks.size() > blockchain.size()) {
-			blockchain = newBlocks;
+		if (isValidChain(newBlocks) && newBlocks.size() > blockChain.size()) {
+			blockChain = newBlocks;
+			//更新已打包交易集合
+			packedTransactions.clear();
+			blockChain.forEach(block -> {
+				packedTransactions.addAll(block.getTransactions());
+			});
 		} else {
 			System.out.println("接收的区块链无效");
 		}
 	}
 
 	private Block createNewBlock(int nonce, String previousHash, String hash, List<Transaction> blockTxs) {
-		Block block = new Block(blockchain.size() + 1, System.currentTimeMillis(), blockTxs, nonce, previousHash, hash);
+		Block block = new Block(blockChain.size() + 1, System.currentTimeMillis(), blockTxs, nonce, previousHash, hash);
 		if (addBlock(block)) {
 			return block;
 		}
@@ -284,7 +289,7 @@ public class BlockService {
 			}
 		}
 
-		for (Block block : blockchain) {
+		for (Block block : blockChain) {
 			List<Transaction> transactions = block.getTransactions();
 			for (Transaction tx : transactions) {
 				if (address.equals(CryptoUtil.MD5(tx.getTxOut().getPublicKeyHash()))) {
@@ -321,7 +326,7 @@ public class BlockService {
 	 * @return
 	 */
 	public Wallet createWallet() {
-		Wallet wallet = new Wallet();
+		Wallet wallet = Wallet.generateWallet();
 		String address = wallet.getAddress();
 		myWalletMap.put(address, wallet);
 		return wallet;
@@ -342,12 +347,12 @@ public class BlockService {
 		return balance;
 	}
 
-	public List<Block> getBlockchain() {
-		return blockchain;
+	public List<Block> getBlockChain() {
+		return blockChain;
 	}
 
-	public void setBlockchain(List<Block> blockchain) {
-		this.blockchain = blockchain;
+	public void setBlockChain(List<Block> blockChain) {
+		this.blockChain = blockChain;
 	}
 
 	public Map<String, Wallet> getMyWalletMap() {

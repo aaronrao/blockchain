@@ -2,10 +2,7 @@ package com.blockchain.p2p;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -16,13 +13,12 @@ import org.java_websocket.handshake.ServerHandshake;
  *
  */
 public class P2PClient {
-	private List<WebSocket> sockets;
+	
 	private P2PService p2pService;
 
 	public P2PClient(P2PService p2pService) {
 		this.p2pService = p2pService;
-		this.sockets = new ArrayList<WebSocket>();
-	}
+    }
 
 	public void connectToPeer(String peer) {
 		try {
@@ -30,24 +26,27 @@ public class P2PClient {
 				@Override
 				public void onOpen(ServerHandshake serverHandshake) {
 					p2pService.write(this, p2pService.queryLatestBlockMsg());
-					sockets.add(this);
+					p2pService.write(this, p2pService.queryTransactionMsg());
+					p2pService.write(this, p2pService.queryPackedTransactionMsg());
+					p2pService.write(this, p2pService.queryWalletMsg());
+					p2pService.getSockets().add(this);
 				}
 
 				@Override
 				public void onMessage(String msg) {
-					p2pService.handleMessage(this, msg, sockets);
+					p2pService.handleMessage(this, msg, p2pService.getSockets());
 				}
 
 				@Override
 				public void onClose(int i, String msg, boolean b) {
 					System.out.println("connection failed");
-					sockets.remove(this);
+					p2pService.getSockets().remove(this);
 				}
 
 				@Override
 				public void onError(Exception e) {
 					System.out.println("connection failed");
-					sockets.remove(this);
+					p2pService.getSockets().remove(this);
 				}
 			};
 			socketClient.connect();
@@ -56,23 +55,4 @@ public class P2PClient {
 		}
 	}
 
-	public List<WebSocket> getSockets() {
-		return sockets;
-	}
-
-	public void write(WebSocket ws, String message) {
-		System.out.println("发送给" + ws.getRemoteSocketAddress().getPort() + "的p2p消息:" + message);
-		ws.send(message);
-	}
-
-	public void broatcast(String message) {
-		if (sockets.size() == 0) {
-			return;
-		}
-		System.out.println("======广播消息开始：");
-		for (WebSocket socket : sockets) {
-			this.write(socket, message);
-		}
-		System.out.println("======广播消息结束");
-	}
 }

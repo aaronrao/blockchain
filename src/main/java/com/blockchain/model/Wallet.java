@@ -39,17 +39,8 @@ public class Wallet {
 	}
 
 	public Wallet() {
-		Map<String, Object> initKey;
-		try {
-			// 本地生成公私钥对
-			initKey = RSACoder.initKey();
-			this.publicKey = RSACoder.getPublicKey(initKey);
-			this.privateKey = RSACoder.getPrivateKey(initKey);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
+    }
+	
 	/**
 	 * 只包含公钥的钱包，用来给其他节点使用，其他节点在转账时需要用到
 	 * 
@@ -57,6 +48,25 @@ public class Wallet {
 	 */
 	public Wallet(String publicKey) {
 		this.publicKey = publicKey;
+	}
+	
+	public Wallet(String publicKey, String privateKey) {
+		this.publicKey = publicKey;
+		this.privateKey = privateKey;
+	}
+	
+	public static Wallet generateWallet() {
+		Map<String, Object> initKey;
+		try {
+			// 本地生成公私钥对
+			initKey = RSACoder.initKey();
+			String publicKey = RSACoder.getPublicKey(initKey);
+			String privateKey = RSACoder.getPrivateKey(initKey);
+			return new Wallet(publicKey, privateKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
