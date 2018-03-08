@@ -2,6 +2,7 @@ package com.blockchain.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.java_websocket.WebSocket;
+import org.naivechain.block.HTTPService.AddPeerServlet;
+import org.naivechain.block.HTTPService.PeersServlet;
 
 import com.alibaba.fastjson.JSON;
 import com.blockchain.block.BlockService;
@@ -64,6 +68,10 @@ public class HTTPService {
 			context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/unpacked/get");
 			// 查询钱包余额
 			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/balance/get");
+			// 查询所有socket节点
+			context.addServlet(new ServletHolder(new PeersServlet()), "/peers");
+			// 添加socket节点
+            context.addServlet(new ServletHolder(new AddPeerServlet()), "/addPeer");
 
 			server.start();
 			server.join();
@@ -173,6 +181,32 @@ public class HTTPService {
 			resp.getWriter().print("本节点未打包交易：" + JSON.toJSONString(transactions));
 		}
 	}
+	
+	private class AddPeerServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            this.doPost(req, resp);
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            resp.setCharacterEncoding("UTF-8");
+            String peer = req.getParameter("peer");
+            p2pService.connectToPeer(peer);
+            resp.getWriter().print("ok");
+        }
+    }
+
+    private class PeersServlet extends HttpServlet {
+        @Override
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            resp.setCharacterEncoding("UTF-8");
+            for (WebSocket socket : p2pService.getSockets()) {
+                InetSocketAddress remoteSocketAddress = socket.getRemoteSocketAddress();
+                resp.getWriter().print(remoteSocketAddress.getHostName() + ":" + remoteSocketAddress.getPort());
+            }
+        }
+    }
 
 	private String getReqBody(HttpServletRequest req) throws IOException {
 		BufferedReader br = req.getReader();

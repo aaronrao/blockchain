@@ -57,15 +57,15 @@ public class P2PService {
 		}
 	}
 
-	public void handleBlockChainResponse(String message, List<WebSocket> sockets) {
-		List<Block> receiveBlocks = JSON.parseArray(message, Block.class);
-		Collections.sort(receiveBlocks, new Comparator<Block>() {
-			public int compare(Block o1, Block o2) {
-				return o1.getIndex() - o1.getIndex();
+	public synchronized void handleBlockChainResponse(String message, List<WebSocket> sockets) {
+		List<Block> receiveBlockchain = JSON.parseArray(message, Block.class);
+		Collections.sort(receiveBlockchain, new Comparator<Block>() {
+			public int compare(Block block1, Block block2) {
+				return block1.getIndex() - block2.getIndex();
 			}
 		});
 
-		Block latestBlockReceived = receiveBlocks.get(receiveBlocks.size() - 1);
+		Block latestBlockReceived = receiveBlockchain.get(receiveBlockchain.size() - 1);
 		Block latestBlock = blockService.getLatestBlock();
 		if (latestBlockReceived.getIndex() > latestBlock.getIndex()) {
 			if (latestBlock.getHash().equals(latestBlockReceived.getPreviousHash())) {
@@ -73,12 +73,12 @@ public class P2PService {
 				if (blockService.addBlock(latestBlockReceived)) {
 					broatcast(responseLatestMsg(), sockets);
 				}
-			} else if (receiveBlocks.size() == 1) {
+			} else if (receiveBlockchain.size() == 1) {
 				System.out.println("查询所有通讯节点上的区块链");
 				broatcast(queryAllMsg(), sockets);
 			} else {
 				// 用长链替换本地的短链
-				blockService.replaceChain(receiveBlocks);
+				blockService.replaceChain(receiveBlockchain);
 			}
 		} else {
 			System.out.println("接收到的区块链不比本地区块链长，不处理");
@@ -115,7 +115,7 @@ public class P2PService {
 		return JSON.toJSONString(new Message(QUERY_ALL));
 	}
 
-	public String queryChainLengthMsg() {
+	public String queryLatestBlockMsg() {
 		return JSON.toJSONString(new Message(QUERY_LATEST));
 	}
 

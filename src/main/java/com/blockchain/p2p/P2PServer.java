@@ -26,7 +26,7 @@ public class P2PServer {
 	public void initP2PServer(int port) {
 		final WebSocketServer socketServer = new WebSocketServer(new InetSocketAddress(port)) {
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-				p2pService.write(webSocket, p2pService.queryChainLengthMsg());
+				p2pService.write(webSocket, p2pService.queryLatestBlockMsg());
 				sockets.add(webSocket);
 			}
 

@@ -29,7 +29,7 @@ public class P2PClient {
 			final WebSocketClient socketClient = new WebSocketClient(new URI(peer)) {
 				@Override
 				public void onOpen(ServerHandshake serverHandshake) {
-					p2pService.write(this, p2pService.queryChainLengthMsg());
+					p2pService.write(this, p2pService.queryLatestBlockMsg());
 					sockets.add(this);
 				}
 
