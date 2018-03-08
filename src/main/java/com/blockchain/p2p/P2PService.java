@@ -3,9 +3,7 @@ package com.blockchain.p2p;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.java_websocket.WebSocket;
 
@@ -38,8 +36,10 @@ public class P2PService {
 	public final static int RESPONSE_BLOCKCHAIN = 5;
 	//返回交易集合
 	public final static int RESPONSE_TRANSACTION = 6;
+	//返回已打包交易集合
+	public final static int RESPONSE_PACKED_TRANSACTION = 7;
 	//返回钱包集合
-	public final static int RESPONSE_WALLET = 7;
+	public final static int RESPONSE_WALLET = 8;
 
 	public P2PService(BlockService blockService) {
 		this.blockService = blockService;
@@ -74,11 +74,14 @@ public class P2PService {
 			case RESPONSE_BLOCKCHAIN:
 				handleBlockChainResponse(message.getData(), sockets);
 				break;
-			case RESPONSE_WALLET:
-				handleWalletResponse(message.getData());
-				break;
 			case RESPONSE_TRANSACTION:
 				handleTransactionResponse(message.getData());
+				break;
+			case RESPONSE_PACKED_TRANSACTION:
+				handlePackedTransactionResponse(message.getData());
+				break;
+			case RESPONSE_WALLET:
+				handleWalletResponse(message.getData());
 				break;
 			}
 		} catch (Exception e) {
@@ -124,6 +127,11 @@ public class P2PService {
 	public void handleTransactionResponse(String message) {
 		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
 		blockService.getAllTransactions().addAll(txs);
+	}
+	
+	public void handlePackedTransactionResponse(String message) {
+		List<Transaction> txs = JSON.parseArray(message, Transaction.class);
+		blockService.getPackedTransactions().addAll(txs);
 	}
 
 	public void write(WebSocket ws, String message) {
@@ -176,7 +184,7 @@ public class P2PService {
 	}
 	
 	public String responsePackedTransactions() {
-		return JSON.toJSONString(new Message(RESPONSE_TRANSACTION, JSON.toJSONString(blockService.getPackedTransactions())));
+		return JSON.toJSONString(new Message(RESPONSE_PACKED_TRANSACTION, JSON.toJSONString(blockService.getPackedTransactions())));
 	}
 	
 	public String responseWallets() {
