@@ -76,7 +76,7 @@ public class Wallet {
 	 */
 	public String getAddress() {
 		String publicKeyHash = hashPubKey(publicKey);
-		return CryptoUtil.MD5(publicKeyHash);
+		return CryptoUtil.MD5(publicKeyHash);   
 	}
 
 	/**

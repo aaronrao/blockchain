@@ -50,6 +50,7 @@ public class RSACoderTest {
 		String sign = RSACoder.sign(data, privateKey);
 		System.err.println("签名:\r" + sign);
 
+		
 		// 验证签名
 		boolean status = RSACoder.verify(data, publicKey, sign);
 		System.err.println("状态:\r" + status);

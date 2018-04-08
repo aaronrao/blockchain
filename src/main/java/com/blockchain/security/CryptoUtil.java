@@ -1,6 +1,7 @@
 package com.blockchain.security;
 
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import org.eclipse.jetty.util.security.Credential.MD5;
@@ -28,10 +29,25 @@ public class CryptoUtil {
 		return encodeStr;
 	}
 
-	public static String MD5(String str) {
-		String resultStr = MD5.digest(str);
-		return resultStr.substring(4, resultStr.length());
-	}
+	public static String MD5(String str) {  
+        try {  
+            StringBuffer buffer = new StringBuffer();  
+            char[] chars = new char[]{'0','1','2','3',  
+                    '4','5','6','7','8','9','A','B','C','D','E','F'};  
+            byte [] bytes = str.getBytes();  
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");  
+            byte[] targ = messageDigest.digest(bytes);  
+            for(byte b:targ) {  
+                buffer.append(chars[(b>>4)&0x0F]);  
+                buffer.append(chars[b&0x0F]);  
+            }  
+            return buffer.toString();  
+        } catch (NoSuchAlgorithmException e) {  
+            // TODO Auto-generated catch block  
+            e.printStackTrace();  
+        }  
+        return null;  
+    } 
 
 	public static String UUID() {
 		return UUID.randomUUID().toString().replaceAll("\\-", "");
@@ -49,5 +65,5 @@ public class CryptoUtil {
 		}
 		return builder.toString();
 	}
-
+	
 }

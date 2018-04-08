@@ -220,6 +220,11 @@ public abstract class RSACoder extends Coder {
 
 		return encryptBASE64(key.getEncoded());
 	}
+	
+	public static void main(String[] args) throws Exception {
+		String text = encryptBASE64("1".getBytes("UTF-8"));
+		System.out.println(new String(decryptBASE64(text)));
+    }
 
 	/**
 	 * 初始化密钥

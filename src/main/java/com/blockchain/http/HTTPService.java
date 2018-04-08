@@ -58,7 +58,7 @@ public class HTTPService {
 			context.addServlet(new ServletHolder(new MineServlet()), "/mine");
 			// 转账交易
 			context.addServlet(new ServletHolder(new NewTransactionServlet()), "/transactions/new");
-			// 转账交易
+			// 查询未打包交易
 			context.addServlet(new ServletHolder(new GetUnpackedTransactionServlet()), "/transactions/unpacked/get");
 			// 查询钱包余额
 			context.addServlet(new ServletHolder(new GetWalletBalanceServlet()), "/wallet/balance/get");
